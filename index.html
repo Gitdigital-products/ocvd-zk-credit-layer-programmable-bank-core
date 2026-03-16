@@ -1,42 +1,1162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programmable Bank Core</title>
-</head>
-<body>
-    <h1>Programmable Bank
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ZK Credit Layer - Programmable Bank Core</title>
+    <title>ZK Credit Layer | Programmable Bank Core</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-          'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-          sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        color: #f8fafc;
-        min-height: 100vh;
-      }
-      
-      #root {
-        min-height: 100vh;
-      }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root {
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --secondary-glow: rgba(168, 85, 247, 0.5);
+            --accent-glow: rgba(236, 72, 153, 0.5);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .glass-strong {
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .gradient-text-cyan {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Animated Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+        
+        /* Glow Effects */
+        .glow-purple {
+            box-shadow: 0 0 40px rgba(168, 85, 247, 0.3);
+        }
+        .glow-cyan {
+            box-shadow: 0 0 40px rgba(6, 182, 212, 0.3);
+        }
+        .glow-pink {
+            box-shadow: 0 0 40px rgba(236, 72, 153, 0.3);
+        }
+        
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes slide-in {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Interactive Elements */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        /* Circuit Animation for ZK Section */
+        .circuit-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 3s ease-out forwards;
+        }
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        /* Loading Animation */
+        .zk-loading {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Status Indicators */
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-active { background: #10b981; box-shadow: 0 0 10px #10b981; }
+        .status-pending { background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
+        .status-verified { background: #3b82f6; box-shadow: 0 0 10px #3b82f6; }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+        .tooltip:hover .tooltip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .tooltip-content {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 50;
+        }
     </style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+</head>
+<body class="antialiased">
+
+    <!-- Three.js Background -->
+    <div id="canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">ZK Credit Layer</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#overview" class="text-sm text-gray-400 hover:text-white transition-colors">Overview</a>
+                    <a href="#architecture" class="text-sm text-gray-400 hover:text-white transition-colors">Architecture</a>
+                    <a href="#dashboard" class="text-sm text-gray-400 hover:text-white transition-colors">Dashboard</a>
+                    <a href="#zk-proof" class="text-sm text-gray-400 hover:text-white transition-colors">ZK Proof</a>
+                    <a href="#docs" class="text-sm text-gray-400 hover:text-white transition-colors">Docs</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button onclick="connectWallet()" class="btn-primary px-6 py-2 rounded-full text-sm font-medium text-white flex items-center space-x-2" id="connect-btn">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        <span>Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-b from-indigo-900/20 via-transparent to-transparent"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8 animate-float">
+                    <div class="inline-flex items-center px-4 py-2 rounded-full glass border border-indigo-500/30 text-indigo-300 text-sm font-medium">
+                        <span class="status-dot status-active"></span>
+                        Solana Integrated • ZK-Ready
+                    </div>
+                    
+                    <h1 class="text-5xl md:text-7xl font-bold leading-tight">
+                        Privacy-Preserving <br>
+                        <span class="gradient-text">Programmable Credit</span>
+                    </h1>
+                    
+                    <p class="text-lg text-gray-400 max-w-xl leading-relaxed">
+                        Prove your creditworthiness without revealing sensitive data. Access under-collateralized loans up to 120% LTV using zero-knowledge proofs.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="scrollToSection('dashboard')" class="btn-primary px-8 py-4 rounded-full text-base font-semibold text-white flex items-center space-x-2">
+                            <span>Launch App</span>
+                            <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                        </button>
+                        <button onclick="scrollToSection('architecture')" class="glass px-8 py-4 rounded-full text-base font-semibold text-white hover:bg-white/10 transition-all flex items-center space-x-2">
+                            <i data-lucide="code" class="w-5 h-5"></i>
+                            <span>View Architecture</span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-6 pt-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">$12.4M</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Total Locked</div>
+                        </div>
+                        <div class="w-px h-10 bg-white/10"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">8,234</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">ZK Proofs</div>
+                        </div>
+                        <div class="w-px h-10 bg-white/10"></div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-white">99.9%</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider">Uptime</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl opacity-20 blur-3xl"></div>
+                    <div class="relative glass-card rounded-3xl p-8 space-y-6 glow-purple">
+                        <div class="flex justify-between items-center mb-6">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center">
+                                    <i data-lucide="user" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold">Demo Account</div>
+                                    <div class="text-xs text-gray-400 font-mono">0x7a...3f9a</div>
+                                </div>
+                            </div>
+                            <div class="px-3 py-1 rounded-full bg-green-500/20 text-green-400 text-xs font-medium border border-green-500/30">
+                                Verified
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="glass rounded-2xl p-4 border border-white/5">
+                                <div class="text-xs text-gray-400 mb-1">Collateral</div>
+                                <div class="text-2xl font-bold font-mono">50,000 <span class="text-sm text-gray-500">USDC</span></div>
+                                <div class="text-xs text-green-400 mt-1">+2.4% this week</div>
+                            </div>
+                            <div class="glass rounded-2xl p-4 border border-white/5">
+                                <div class="text-xs text-gray-400 mb-1">Credit Score</div>
+                                <div class="text-2xl font-bold font-mono text-indigo-400">780</div>
+                                <div class="text-xs text-indigo-400 mt-1">ZK Verified</div>
+                            </div>
+                        </div>
+
+                        <div class="glass rounded-2xl p-4 border border-white/5">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-sm text-gray-400">Borrowing Power</span>
+                                <span class="text-sm font-bold text-white">60,000 USDC</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2 mb-2">
+                                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0%</span>
+                                <span>120% LTV Max</span>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-3">
+                            <button class="flex-1 btn-primary py-3 rounded-xl text-sm font-semibold">Borrow</button>
+                            <button class="flex-1 glass py-3 rounded-xl text-sm font-semibold hover:bg-white/10 transition-all">Repay</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Live Activity Ticker -->
+    <div class="border-y border-white/5 bg-black/20 backdrop-blur-sm overflow-hidden">
+        <div class="flex animate-marquee whitespace-nowrap py-3">
+            <div class="flex items-center space-x-8 mx-4 text-sm">
+                <span class="text-gray-500">Latest ZK Proofs:</span>
+                <span class="flex items-center space-x-2"><span class="status-dot status-verified"></span><span class="font-mono text-indigo-400">0x8a...2b1</span><span class="text-gray-400">verified credit score 820</span></span>
+                <span class="flex items-center space-x-2"><span class="status-dot status-verified"></span><span class="font-mono text-indigo-400">0x3c...9f2</span><span class="text-gray-400">borrowed 25,000 USDC</span></span>
+                <span class="flex items-center space-x-2"><span class="status-dot status-verified"></span><span class="font-mono text-indigo-400">0x7d...4a8</span><span class="text-gray-400">deposited 100,000 USDC</span></span>
+                <span class="flex items-center space-x-2"><span class="status-dot status-verified"></span><span class="font-mono text-indigo-400">0x2e...8c5</span><span class="text-gray-400">liquidation prevented</span></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">System <span class="gradient-text-cyan">Architecture</span></h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">Modular design separating concerns between banking logic, loan management, and zero-knowledge verification.</p>
+            </div>
+
+            <div class="relative">
+                <!-- Connection Lines SVG -->
+                <svg class="absolute inset-0 w-full h-full pointer-events-none z-0" style="overflow: visible;">
+                    <defs>
+                        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.5" />
+                            <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0.5" />
+                        </linearGradient>
+                    </defs>
+                    <path class="circuit-line hidden md:block" d="M 200 100 Q 400 100 600 100" stroke="url(#lineGradient)" stroke-width="2" fill="none"/>
+                    <path class="circuit-line hidden md:block" d="M 200 250 Q 400 250 600 250" stroke="url(#lineGradient)" stroke-width="2" fill="none" style="animation-delay: 0.5s"/>
+                    <path class="circuit-line hidden md:block" d="M 200 400 Q 400 400 600 400" stroke="url(#lineGradient)" stroke-width="2" fill="none" style="animation-delay: 1s"/>
+                </svg>
+
+                <div class="grid md:grid-cols-3 gap-8 relative z-10">
+                    <!-- Frontend Layer -->
+                    <div class="glass-card rounded-2xl p-6 space-y-4 hover:glow-cyan transition-all duration-500 group">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="layout" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">Frontend Layer</h3>
+                        <p class="text-sm text-gray-400">React-based interface with real-time blockchain data synchronization.</p>
+                        <div class="space-y-2 pt-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Dashboard</span>
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">ZK Proof Gen</span>
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Wallet Connect</span>
+                                <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Contracts -->
+                    <div class="glass-card rounded-2xl p-6 space-y-4 hover:glow-purple transition-all duration-500 group">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="file-code" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">Smart Contracts</h3>
+                        <p class="text-sm text-gray-400">Solidity contracts handling deposits, loans, and liquidations on Solana/EVM.</p>
+                        <div class="space-y-2 pt-4">
+                            <div class="flex items-center justify-between text-sm font-mono">
+                                <span class="text-gray-500">BankCore.sol</span>
+                                <span class="text-xs text-indigo-400">v1.0.0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm font-mono">
+                                <span class="text-gray-500">LoanManager.sol</span>
+                                <span class="text-xs text-indigo-400">v1.0.0</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm font-mono">
+                                <span class="text-gray-500">CreditVerifier.sol</span>
+                                <span class="text-xs text-indigo-400">v1.0.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ZK Circuits -->
+                    <div class="glass-card rounded-2xl p-6 space-y-4 hover:glow-pink transition-all duration-500 group">
+                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">ZK Circuits</h3>
+                        <p class="text-sm text-gray-400">Circom circuits for generating and verifying zero-knowledge proofs.</p>
+                        <div class="space-y-2 pt-4">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">credit_score.circom</span>
+                                <i data-lucide="shield" class="w-4 h-4 text-pink-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">snarkjs</span>
+                                <i data-lucide="shield" class="w-4 h-4 text-pink-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-500">Trusted Setup</span>
+                                <i data-lucide="shield" class="w-4 h-4 text-pink-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Dashboard -->
+    <section id="dashboard" class="py-24 bg-gradient-to-b from-transparent via-indigo-950/10 to-transparent">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Programmable <span class="gradient-text">Banking</span></h2>
+                <p class="text-gray-400">Interact with the protocol. Deposit collateral, generate ZK proofs, and borrow with enhanced LTV.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Account Overview -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i data-lucide="wallet" class="w-5 h-5 mr-2 text-indigo-400"></i>
+                            Your Position
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center p-3 glass rounded-xl">
+                                <span class="text-gray-400">Deposited</span>
+                                <span class="font-mono font-bold" id="total-deposited">0 USDC</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 glass rounded-xl">
+                                <span class="text-gray-400">Borrowed</span>
+                                <span class="font-mono font-bold text-orange-400" id="total-borrowed">0 USDC</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 glass rounded-xl border border-indigo-500/30 bg-indigo-500/10">
+                                <span class="text-indigo-300">Health Factor</span>
+                                <span class="font-mono font-bold text-indigo-400" id="health-factor">∞</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i data-lucide="activity" class="w-5 h-5 mr-2 text-green-400"></i>
+                            Protocol Stats
+                        </h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Total Deposits</span>
+                                <span class="font-mono">$12.4M</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Total Borrowed</span>
+                                <span class="font-mono">$8.2M</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Avg APY (Deposit)</span>
+                                <span class="font-mono text-green-400">4.2%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-500">Avg APY (Borrow)</span>
+                                <span class="font-mono text-orange-400">8.5%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Interaction Panel -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Action Tabs -->
+                    <div class="glass-card rounded-2xl p-2 flex space-x-2">
+                        <button onclick="switchTab('deposit')" id="tab-deposit" class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all bg-indigo-600 text-white">
+                            Deposit
+                        </button>
+                        <button onclick="switchTab('borrow')" id="tab-borrow" class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all text-gray-400 hover:text-white">
+                            Borrow
+                        </button>
+                        <button onclick="switchTab('repay')" id="tab-repay" class="flex-1 py-3 rounded-xl text-sm font-semibold transition-all text-gray-400 hover:text-white">
+                            Repay
+                        </button>
+                    </div>
+
+                    <!-- Deposit Panel -->
+                    <div id="panel-deposit" class="glass-card rounded-2xl p-8 space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold">Deposit Collateral</h3>
+                            <div class="text-sm text-gray-400">Balance: <span class="font-mono text-white">100,000 USDC</span></div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Amount</label>
+                                <div class="relative">
+                                    <input type="number" id="deposit-amount" class="input-field w-full px-4 py-4 rounded-xl text-white placeholder-gray-600 font-mono" placeholder="0.00" oninput="calculateMetrics()">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">USDC</span>
+                                </div>
+                            </div>
+                            
+                            <div class="flex space-x-2">
+                                <button onclick="setAmount('deposit', 25)" class="flex-1 py-2 rounded-lg glass text-xs hover:bg-white/10 transition-all">25%</button>
+                                <button onclick="setAmount('deposit', 50)" class="flex-1 py-2 rounded-lg glass text-xs hover:bg-white/10 transition-all">50%</button>
+                                <button onclick="setAmount('deposit', 75)" class="flex-1 py-2 rounded-lg glass text-xs hover:bg-white/10 transition-all">75%</button>
+                                <button onclick="setAmount('deposit', 100)" class="flex-1 py-2 rounded-lg glass text-xs hover:bg-white/10 transition-all">Max</button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl glass border border-white/5 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Borrowing Power Increase</span>
+                                <span class="font-mono text-green-400" id="borrow-power-increase">+0 USDC</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">New LTV Ratio</span>
+                                <span class="font-mono" id="new-ltv-deposit">0%</span>
+                            </div>
+                        </div>
+
+                        <button onclick="executeDeposit()" class="w-full btn-primary py-4 rounded-xl font-semibold text-lg flex items-center justify-center space-x-2" id="deposit-btn">
+                            <span>Deposit USDC</span>
+                        </button>
+                    </div>
+
+                    <!-- Borrow Panel -->
+                    <div id="panel-borrow" class="glass-card rounded-2xl p-8 space-y-6 hidden">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-bold">Borrow Funds</h3>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs text-gray-400">ZK Enhanced</span>
+                                <button onclick="toggleZKMode()" id="zk-toggle" class="w-12 h-6 rounded-full bg-gray-700 relative transition-colors duration-300">
+                                    <div class="w-4 h-4 rounded-full bg-white absolute top-1 left-1 transition-transform duration-300" id="zk-toggle-dot"></div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl bg-indigo-500/10 border border-indigo-500/30" id="zk-notice" style="display: none;">
+                            <div class="flex items-start space-x-3">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-indigo-400 mt-0.5"></i>
+                                <div>
+                                    <div class="text-sm font-semibold text-indigo-300">ZK Mode Active</div>
+                                    <div class="text-xs text-gray-400 mt-1">Credit score verified via ZK proof. Max LTV increased from 50% to 120%.</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Amount</label>
+                                <div class="relative">
+                                    <input type="number" id="borrow-amount" class="input-field w-full px-4 py-4 rounded-xl text-white placeholder-gray-600 font-mono" placeholder="0.00" oninput="calculateBorrow()">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">USDC</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl glass border border-white/5 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Max Borrow (Standard)</span>
+                                <span class="font-mono" id="max-borrow-standard">0 USDC</span>
+                            </div>
+                            <div class="flex justify-between text-sm text-indigo-400" id="max-borrow-zk-row" style="display: none;">
+                                <span>Max Borrow (ZK Enhanced)</span>
+                                <span class="font-mono" id="max-borrow-zk">0 USDC</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Liquidation Threshold</span>
+                                <span class="font-mono text-orange-400">80%</span>
+                            </div>
+                        </div>
+
+                        <button onclick="executeBorrow()" class="w-full btn-primary py-4 rounded-xl font-semibold text-lg flex items-center justify-center space-x-2" id="borrow-btn">
+                            <span>Borrow USDC</span>
+                        </button>
+                    </div>
+
+                    <!-- Repay Panel -->
+                    <div id="panel-repay" class="glass-card rounded-2xl p-8 space-y-6 hidden">
+                        <h3 class="text-xl font-bold">Repay Loan</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Amount</label>
+                                <div class="relative">
+                                    <input type="number" id="repay-amount" class="input-field w-full px-4 py-4 rounded-xl text-white placeholder-gray-600 font-mono" placeholder="0.00">
+                                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">USDC</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl glass border border-white/5 space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Current Debt</span>
+                                <span class="font-mono text-orange-400" id="current-debt">0 USDC</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-400">Interest Accrued</span>
+                                <span class="font-mono">0 USDC</span>
+                            </div>
+                        </div>
+
+                        <button onclick="executeRepay()" class="w-full btn-primary py-4 rounded-xl font-semibold text-lg">
+                            Repay USDC
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ZK Proof Visualization -->
+    <section id="zk-proof" class="py-24 relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-r from-indigo-900/10 via-purple-900/10 to-pink-900/10"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Zero-Knowledge <span class="gradient-text">Verification</span></h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">See how your credit score is verified without revealing the actual score to the protocol.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="glass-card rounded-2xl p-6 space-y-4">
+                        <h3 class="text-lg font-semibold flex items-center">
+                            <i data-lucide="user" class="w-5 h-5 mr-2 text-cyan-400"></i>
+                            Prover (You)
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-black/30 border border-white/5">
+                                <span class="text-sm text-gray-400">Private Credit Score</span>
+                                <span class="font-mono text-cyan-400">780</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-black/30 border border-white/5">
+                                <span class="text-sm text-gray-400">Secret Key</span>
+                                <span class="font-mono text-xs">0x7a3f...9e2d</span>
+                            </div>
+                        </div>
+                        <button onclick="generateProof()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 transition-all font-semibold flex items-center justify-center space-x-2" id="generate-proof-btn">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                            <span>Generate ZK Proof</span>
+                        </button>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <i data-lucide="arrow-down" class="w-8 h-8 text-gray-600 animate-bounce"></i>
+                    </div>
+
+                    <div class="glass-card rounded-2xl p-6 space-y-4 opacity-50 transition-all duration-500" id="verifier-card">
+                        <h3 class="text-lg font-semibold flex items-center">
+                            <i data-lucide="shield" class="w-5 h-5 mr-2 text-purple-400"></i>
+                            Verifier (Smart Contract)
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-black/30 border border-white/5">
+                                <span class="text-sm text-gray-400">Public Threshold</span>
+                                <span class="font-mono text-purple-400">≥ 750</span>
+                            </div>
+                            <div class="flex justify-between items-center p-3 rounded-lg bg-black/30 border border-white/5">
+                                <span class="text-sm text-gray-400">Nullifier Hash</span>
+                                <span class="font-mono text-xs">Preventing double-spend</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-green-500/10 border border-green-500/30 hidden" id="verification-result">
+                            <div class="flex items-center space-x-2 text-green-400">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i>
+                                <span class="font-semibold">Proof Verified!</span>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Credit score ≥ 750 confirmed without revealing actual score.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div class="absolute -inset-4 bg-gradient-to-r from-cyan-500 to-purple-600 rounded-3xl opacity-20 blur-3xl animate-pulse"></div>
+                    <div class="relative glass-card rounded-3xl p-8 glow-cyan">
+                        <h3 class="text-xl font-bold mb-6">How It Works</h3>
+                        <div class="space-y-6">
+                            <div class="flex space-x-4">
+                                <div class="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                                <div>
+                                    <h4 class="font-semibold mb-1">Generate Proof</h4>
+                                    <p class="text-sm text-gray-400">Your client generates a ZK proof using your private credit score and secret key.</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-4">
+                                <div class="w-8 h-8 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                                <div>
+                                    <h4 class="font-semibold mb-1">Submit Public Signals</h4>
+                                    <p class="text-sm text-gray-400">Only the threshold (750), nullifier hash, and your address are sent on-chain.</p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-4">
+                                <div class="w-8 h-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                                <div>
+                                    <h4 class="font-semibold mb-1">Verify & Unlock</h4>
+                                    <p class="text-sm text-gray-400">The contract verifies the proof and unlocks 120% LTV borrowing power.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-4 rounded-xl bg-black/40 border border-white/5">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs text-gray-500 font-mono">Circuit: credit_score.circom</span>
+                                <span class="text-xs text-green-400 flex items-center">
+                                    <span class="status-dot status-active mr-1"></span>
+                                    Compiled
+                                </span>
+                            </div>
+                            <div class="font-mono text-xs text-gray-600 space-y-1">
+                                <div>pragma circom 2.0.0;</div>
+                                <div>template CreditScore() {</div>
+                                <div class="pl-4">signal input creditScore;</div>
+                                <div class="pl-4">signal input threshold;</div>
+                                <div class="pl-4">signal output isValid;</div>
+                                <div class="pl-4">isValid &lt;== creditScore &gt;= threshold;</div>
+                                <div>}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section id="docs" class="py-24 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold mb-4">Documentation</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> Quick Start</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> Smart Contracts</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> ZK Circuits</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> API Reference</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> Security</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-1">
+                    <h3 class="text-lg font-bold mb-4">Resources</h3>
+                    <ul class="space-y-2 text-sm text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> GitHub</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> Whitepaper</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> SDK</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors flex items-center"><i data-lucide="chevron-right" class="w-4 h-4 mr-1"></i> Testnet</a></li>
+                    </ul>
+                </div>
+                <div class="md:col-span-2">
+                    <h3 class="text-lg font-bold mb-4">Stay Updated</h3>
+                    <p class="text-sm text-gray-400 mb-4">Get the latest updates on ZK Credit Layer development.</p>
+                    <div class="flex space-x-2">
+                        <input type="email" placeholder="Enter your email" class="input-field flex-1 px-4 py-3 rounded-xl text-white text-sm">
+                        <button class="btn-primary px-6 py-3 rounded-xl text-sm font-semibold">Subscribe</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-3 mb-4 md:mb-0">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <span class="font-bold">ZK Credit Layer</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    © 2024 GitDigital Products. MIT License.
+                </div>
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="github" class="w-5 h-5"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="message-circle" class="w-5 h-5"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-8 right-8 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="glass-strong rounded-xl p-4 flex items-center space-x-3 min-w-[300px]">
+            <div id="toast-icon"></div>
+            <div>
+                <div class="font-semibold" id="toast-title">Notification</div>
+                <div class="text-sm text-gray-400" id="toast-message">Message goes here</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Three.js Background Animation
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Create particles
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 100;
+        const posArray = new Float32Array(particlesCount * 3);
+
+        for(let i = 0; i < particlesCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 50;
+        }
+
+        particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const particlesMaterial = new THREE.PointsMaterial({
+            size: 0.1,
+            color: 0x6366f1,
+            transparent: true,
+            opacity: 0.6,
+            blending: THREE.AdditiveBlending
+        });
+
+        const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particlesMesh);
+
+        camera.position.z = 30;
+
+        // Mouse interaction
+        let mouseX = 0;
+        let mouseY = 0;
+
+        document.addEventListener('mousemove', (event) => {
+            mouseX = event.clientX / window.innerWidth - 0.5;
+            mouseY = event.clientY / window.innerHeight - 0.5;
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            particlesMesh.rotation.y += 0.001;
+            particlesMesh.rotation.x += 0.001;
+            
+            // Subtle mouse follow
+            particlesMesh.rotation.x += mouseY * 0.05;
+            particlesMesh.rotation.y += mouseX * 0.05;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Application State
+        let state = {
+            deposited: 0,
+            borrowed: 0,
+            zkMode: false,
+            zkVerified: false,
+            walletConnected: false
+        };
+
+        // Wallet Connection
+        function connectWallet() {
+            const btn = document.getElementById('connect-btn');
+            if (!state.walletConnected) {
+                btn.innerHTML = '<div class="zk-loading w-4 h-4 border-2 mr-2"></div><span>Connecting...</span>';
+                setTimeout(() => {
+                    state.walletConnected = true;
+                    btn.innerHTML = '<span class="font-mono text-xs">0x7a...3f9a</span><i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>';
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('glass', 'border-green-500/50', 'text-green-400');
+                    lucide.createIcons();
+                    showToast('success', 'Wallet Connected', 'Successfully connected to Solana wallet');
+                }, 1500);
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            // Hide all panels
+            document.getElementById('panel-deposit').classList.add('hidden');
+            document.getElementById('panel-borrow').classList.add('hidden');
+            document.getElementById('panel-repay').classList.add('hidden');
+            
+            // Reset tab styles
+            document.getElementById('tab-deposit').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('tab-deposit').classList.add('text-gray-400');
+            document.getElementById('tab-borrow').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('tab-borrow').classList.add('text-gray-400');
+            document.getElementById('tab-repay').classList.remove('bg-indigo-600', 'text-white');
+            document.getElementById('tab-repay').classList.add('text-gray-400');
+            
+            // Show selected panel and style tab
+            document.getElementById(`panel-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.remove('text-gray-400');
+            document.getElementById(`tab-${tab}`).classList.add('bg-indigo-600', 'text-white');
+            
+            if (tab === 'borrow') calculateBorrow();
+        }
+
+        // Amount Setting
+        function setAmount(type, percentage) {
+            const maxAmount = 100000;
+            const amount = (maxAmount * percentage) / 100;
+            document.getElementById(`${type}-amount`).value = amount;
+            if (type === 'deposit') calculateMetrics();
+        }
+
+        // Calculate Deposit Metrics
+        function calculateMetrics() {
+            const amount = parseFloat(document.getElementById('deposit-amount').value) || 0;
+            const newDeposited = state.deposited + amount;
+            const borrowPower = amount * (state.zkVerified ? 1.2 : 0.5);
+            
+            document.getElementById('borrow-power-increase').textContent = `+${borrowPower.toLocaleString()} USDC`;
+            
+            const ltv = state.borrowed > 0 ? (state.borrowed / newDeposited * 100).toFixed(1) : 0;
+            document.getElementById('new-ltv-deposit').textContent = `${ltv}%`;
+        }
+
+        // ZK Mode Toggle
+        function toggleZKMode() {
+            state.zkMode = !state.zkMode;
+            const toggle = document.getElementById('zk-toggle');
+            const dot = document.getElementById('zk-toggle-dot');
+            const notice = document.getElementById('zk-notice');
+            const zkRow = document.getElementById('max-borrow-zk-row');
+            
+            if (state.zkMode) {
+                toggle.classList.remove('bg-gray-700');
+                toggle.classList.add('bg-indigo-600');
+                dot.style.transform = 'translateX(24px)';
+                notice.style.display = 'block';
+                if (state.zkVerified) {
+                    zkRow.style.display = 'flex';
+                }
+            } else {
+                toggle.classList.add('bg-gray-700');
+                toggle.classList.remove('bg-indigo-600');
+                dot.style.transform = 'translateX(0)';
+                notice.style.display = 'none';
+                zkRow.style.display = 'none';
+            }
+            calculateBorrow();
+        }
+
+        // Calculate Borrow Metrics
+        function calculateBorrow() {
+            const maxStandard = state.deposited * 0.5;
+            const maxZK = state.zkVerified ? state.deposited * 1.2 : 0;
+            
+            document.getElementById('max-borrow-standard').textContent = `${maxStandard.toLocaleString()} USDC`;
+            document.getElementById('max-borrow-zk').textContent = `${maxZK.toLocaleString()} USDC`;
+            
+            if (state.zkMode && state.zkVerified) {
+                document.getElementById('max-borrow-zk-row').style.display = 'flex';
+            }
+        }
+
+        // Execute Actions
+        function executeDeposit() {
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            if (!amount || amount <= 0) {
+                showToast('error', 'Invalid Amount', 'Please enter a valid deposit amount');
+                return;
+            }
+            
+            state.deposited += amount;
+            updatePosition();
+            showToast('success', 'Deposit Successful', `Deposited ${amount.toLocaleString()} USDC`);
+            document.getElementById('deposit-amount').value = '';
+            calculateMetrics();
+        }
+
+        function executeBorrow() {
+            const amount = parseFloat(document.getElementById('borrow-amount').value);
+            const maxAmount = state.zkMode && state.zkVerified ? state.deposited * 1.2 : state.deposited * 0.5;
+            
+            if (!amount || amount <= 0) {
+                showToast('error', 'Invalid Amount', 'Please enter a valid borrow amount');
+                return;
+            }
+            if (amount > maxAmount) {
+                showToast('error', 'Insufficient Collateral', `Maximum borrow amount is ${maxAmount.toLocaleString()} USDC`);
+                return;
+            }
+            
+            state.borrowed += amount;
+            updatePosition();
+            showToast('success', 'Borrow Successful', `Borrowed ${amount.toLocaleString()} USDC${state.zkMode ? ' (ZK Enhanced)' : ''}`);
+            document.getElementById('borrow-amount').value = '';
+        }
+
+        function executeRepay() {
+            const amount = parseFloat(document.getElementById('repay-amount').value);
+            if (!amount || amount <= 0 || amount > state.borrowed) {
+                showToast('error', 'Invalid Amount', 'Please enter a valid repay amount');
+                return;
+            }
+            
+            state.borrowed -= amount;
+            updatePosition();
+            showToast('success', 'Repay Successful', `Repaid ${amount.toLocaleString()} USDC`);
+            document.getElementById('repay-amount').value = '';
+        }
+
+        function updatePosition() {
+            document.getElementById('total-deposited').textContent = `${state.deposited.toLocaleString()} USDC`;
+            document.getElementById('total-borrowed').textContent = `${state.borrowed.toLocaleString()} USDC`;
+            document.getElementById('current-debt').textContent = `${state.borrowed.toLocaleString()} USDC`;
+            
+            const healthFactor = state.borrowed > 0 ? (state.deposited * 0.8 / state.borrowed).toFixed(2) : '∞';
+            const healthEl = document.getElementById('health-factor');
+            healthEl.textContent = healthFactor;
+            
+            if (healthFactor !== '∞' && parseFloat(healthFactor) < 1.1) {
+                healthEl.classList.remove('text-indigo-400');
+                healthEl.classList.add('text-red-400');
+            } else {
+                healthEl.classList.add('text-indigo-400');
+                healthEl.classList.remove('text-red-400');
+            }
+            
+            calculateBorrow();
+        }
+
+        // Generate ZK Proof
+        function generateProof() {
+            const btn = document.getElementById('generate-proof-btn');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<div class="zk-loading w-4 h-4 border-2 mr-2 inline-block"></div><span>Generating...</span>';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                state.zkVerified = true;
+                btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 mr-2"></i><span>Proof Generated</span>';
+                btn.classList.remove('from-cyan-600', 'to-blue-600');
+                btn.classList.add('from-green-600', 'to-emerald-600');
+                lucide.createIcons();
+                
+                document.getElementById('verifier-card').classList.remove('opacity-50');
+                document.getElementById('verification-result').classList.remove('hidden');
+                
+                showToast('success', 'ZK Proof Verified', 'Your credit score has been verified on-chain');
+                
+                if (state.zkMode) calculateBorrow();
+            }, 3000);
+        }
+
+        // Toast Notification
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const titleEl = document.getElementById('toast-title');
+            const messageEl = document.getElementById('toast-message');
+            
+            if (type === 'success') {
+                icon.innerHTML = '<i data-lucide="check-circle" class="w-6 h-6 text-green-400"></i>';
+            } else {
+                icon.innerHTML = '<i data-lucide="alert-circle" class="w-6 h-6 text-red-400"></i>';
+            }
+            lucide.createIcons();
+            
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 4000);
+        }
+
+        // Smooth Scroll
+        function scrollToSection(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('glass-strong');
+            } else {
+                navbar.classList.remove('glass-strong');
+            }
+        });
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+        
+        gsap.from('.glass-card', {
+            scrollTrigger: {
+                trigger: '#architecture',
+                start: 'top 80%',
+            },
+            y: 50,
+            opacity: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: 'power2.out'
+        });
+
+        // Initialize
+        updatePosition();
+    </script>
+</body>
 </html>
